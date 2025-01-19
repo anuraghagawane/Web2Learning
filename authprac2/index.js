@@ -9,7 +9,7 @@ const JWT_SECRET = "ANURAG";
 
 const app = express();
 // gy67rG3LzYHOdbA3
-mongoose.connect("mongodb+srv://admin-anurag:gy67rG3LzYHOdbA3@cluster0.2miw6.mongodb.net/todo-anurag")
+mongoose.connect("")
 
 app.use(express.json());
 
