@@ -1,6 +1,8 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const { z } = require("zod")
 const { UserModel, TodoModel } = require("./db");
 
 const JWT_SECRET = "ANURAG";
@@ -12,22 +14,42 @@ mongoose.connect("mongodb+srv://admin-anurag:gy67rG3LzYHOdbA3@cluster0.2miw6.mon
 app.use(express.json());
 
 app.post("/signin", async (req, res) => {
+    const signinSchema = z.object({
+        email: z.string().email(),
+        password: z.string()
+    });
+
+    const isSafe = signinSchema.safeParse(req.body);
+
+    if (!isSafe.success) {
+        res.json({
+            messages: "incorrect format",
+            error: isSafe.error
+        })
+    }
+
     const { email, password } = req.body;
 
     const user = await UserModel.findOne({
         email: email,
-        password: password
     });
-    console.log(user);
 
     if (user) {
-        const token = jwt.sign({
-            id: user._id
-        }, JWT_SECRET)
+        const correctPassword = await bcrypt.compare(password, user.password);
+        if (correctPassword) {
+            const token = jwt.sign({
+                id: user._id
+            }, JWT_SECRET)
 
-        res.json({
-            token: token
-        })
+            res.json({
+                token: token
+            })
+        }
+        else {
+            res.json({
+                message: "Incorrect credentials"
+            })
+        }
     } else {
         res.json({
             message: "User not found"
@@ -37,11 +59,28 @@ app.post("/signin", async (req, res) => {
 })
 
 app.post("/signup", async (req, res) => {
+    const signupSchema = z.object({
+        email: z.string().email(),
+        password: z.string(),
+        username: z.string(),
+    });
+
+    const isSafe = signupSchema.safeParse(req.body);
+
+    if (!isSafe.success) {
+        res.json({
+            messages: "incorrect format",
+            error: isSafe.error
+        })
+    }
+
     const { email, password, username } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 5);
 
     await UserModel.create({
         email,
-        password,
+        password: hashedPassword,
         username
     })
 
