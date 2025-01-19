@@ -8,7 +8,6 @@ const { UserModel, TodoModel } = require("./db");
 const JWT_SECRET = "ANURAG";
 
 const app = express();
-// gy67rG3LzYHOdbA3
 mongoose.connect("")
 
 app.use(express.json());
